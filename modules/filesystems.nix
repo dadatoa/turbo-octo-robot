@@ -9,19 +9,19 @@
     neededForBoot = true;
     device = "/dev/xvdb";
     fsType = "btrfs";
-    mountOptions = ["subvol=nix" "compress=zstd" "noatime"];
+    options = ["subvol=nix" "compress=zstd" "noatime"];
   };
   fileSystems."/persistent" = {
     neededForBoot = true;
     device = "/dev/xvdb";
     fsType = "btrfs";
-    mountOptions = ["subvol=persistent" "compress=zstd" "noatime"];
+    pptions = ["subvol=persistent" "compress=zstd" "noatime"];
   };
   fileSystems."/boot" = {
     neededForBoot = true;
     device = "/dev/xvdb";
     fsType = "btrfs";
-    mountOptions = ["subvol=boot" "noatime"];
+    options = ["subvol=boot" "noatime"];
   };
 
   swapDevices = [{ 
