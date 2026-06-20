@@ -6,7 +6,7 @@
     preservation.url = "github:nix-community/preservation";
   };
 
-  outputs = inputs: {
+  outputs = inputs@{ nixpkgs, preservation, ... }: {
     nixosConfigurations.nixos = inputs.nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
