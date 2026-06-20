@@ -15,7 +15,7 @@
     neededForBoot = true;
     device = "/dev/xvdb";
     fsType = "btrfs";
-    pptions = ["subvol=persistent" "compress=zstd" "noatime"];
+    options = ["subvol=persistent" "compress=zstd" "noatime"];
   };
   fileSystems."/boot" = {
     neededForBoot = true;
