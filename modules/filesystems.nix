@@ -1,11 +1,11 @@
 {
-  fileSystems."/" =
-    { device = "none";
-      fsType = "tmpfs";
-      options = [ "size=25%" "mode=755" ]; # mode=755 so only root can write to those files
+  fileSystems."/" = {
+    device = "none";
+    fsType = "tmpfs";
+    options = [ "size=25%" "mode=755" ]; # mode=755 so only root can write to those files
     };
 
-  fileSystems."/nix". = {
+  fileSystems."/nix" = {
     neededForBoot = true;
     device = "/dev/xvdb";
     fsType = "btrfs";
