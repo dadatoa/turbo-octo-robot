@@ -13,29 +13,20 @@
 
       files = [
         "/etc/ssh/authorized_keys.d/operateur"
-        { file = "/run/secrets/root-password.txt"; inInitrd = true; }
-        { file = "/run/secrets/ts-key.txt"; inInitrd = true; }
+        { file = "/persistent/secrets/root-password.txt"; inInitrd = true; }
+        { file = "/persistent/secrets/ts-key.txt"; inInitrd = true; }
         { file = "/etc/machine-id"; inInitrd = true; }
       ];
 
       # Preserve user files
       users.operateur = {
-        directories = [
-          ".ssh"
-          # ".local/share/chezmoi"
-      #     ".mozilla"
-        ];
-      #
-      #   files = [
-      #
-      #   ];
+        directories = [ ".ssh" ];
+        files = [ ".gitconfig" ];
       };
       users.root = {
         home = "/root";
-        directories = [
-          # ".local/share/chezmoi"
-        ];
-      #   files = [ ".gitconfig" ];
+        directories = [ ];
+        files = [ ".gitconfig" ];
       };
     };
   };

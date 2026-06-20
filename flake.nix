@@ -12,6 +12,8 @@
       modules = [
         inputs.preservation.nixosModules.default
         ./vm-conf.nix
+        ./filesystems.nix
+        ./preservation.nix
       ];
     };
   };
