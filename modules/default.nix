@@ -6,7 +6,6 @@
   imports = [
     ./users
     ./administration.nix
-    ./filesystems.nix
     ./localisation.nix
     ./network.nix
     ./remote_access.nix
