@@ -1,0 +1,16 @@
+{ ... }:
+{
+  system.stateVersion = "26.05";
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+
+  imports = [
+    ./users
+    ./administration.nix
+    ./filesystems.nix
+    ./localisation.nix
+    ./network.nix
+    ./remote_access.nix
+    ./settings.nix
+    ./usefull_tools.nix
+  ]; 
+}
