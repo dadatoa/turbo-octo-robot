@@ -16,7 +16,7 @@
     ];
   };
   users.users.root = {
-    hashedPasswordFile = "/run/secrets/root-password.txt"; 
+    hashedPasswordFile = "/persist/secrets/root-password.txt"; 
     # initialHashedPassword = lib.strings.fileContents /run/secrets/root-password.txt;
   };
   security.sudo.wheelNeedsPassword = false;

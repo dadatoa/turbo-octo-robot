@@ -11,11 +11,11 @@
     fsType = "btrfs";
     options = ["subvol=nix" "compress=zstd" "noatime"];
   };
-  fileSystems."/persistent" = {
+  fileSystems."/persist" = {
     neededForBoot = true;
     device = "/dev/xvdb";
     fsType = "btrfs";
-    options = ["subvol=persistent" "compress=zstd" "noatime"];
+    options = ["subvol=persist" "compress=zstd" "noatime"];
   };
   fileSystems."/boot" = {
     neededForBoot = true;

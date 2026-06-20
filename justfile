@@ -13,7 +13,7 @@ prepare_disk machine:
   ssh {{user}}@{{target}} "sudo mount -t btrfs /dev/{{vg}}/{{machine}} /mnt"
   ssh {{user}}@{{target}} "sudo btrfs subvolume create /mnt/boot; \
     sudo btrfs subvolume create /mnt/nix; \
-    sudo btrfs subvolume create /mnt/persistent"
+    sudo btrfs subvolume create /mnt/persist"
 
 send_config:
   ssh {{user}}@{{target}} -t "git init --bare homelab.git"
