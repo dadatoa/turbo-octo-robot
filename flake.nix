@@ -7,7 +7,7 @@
   };
 
   outputs = inputs@{ nixpkgs, preservation, ... }: {
-    nixosConfigurations.nixos = inputs.nixpkgs.lib.nixosSystem {
+    nixosConfigurations.nixdomu = inputs.nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
         inputs.preservation.nixosModules.default

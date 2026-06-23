@@ -1,5 +1,5 @@
 {
-  networking.hostName = "nixos";
+  networking.hostName = "nixos-vm";
   
   networking.firewall.enable = false; 
   
