@@ -1,0 +1,129 @@
+---
+- name: Create LVM LV, format as btrfs, create subvolumes, and mount by UUID
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars:
+    lv_size: "10g"
+    mount_point: "/mnt"
+    subvolumes:
+      - boot
+      - nix
+      - persist
+    xen_cfg_user: "{{ ansible_user | default('root') }}"
+    xen_memory_mb: 4096
+    xen_vcpus: 4
+    xen_type: "pvh"
+    xen_bridge: "xenbr0"
+    xen_mac: ""
+    xen_on_poweroff: "destroy"
+    xen_on_reboot: "restart"
+    xen_on_crash: "restart"
+
+  tasks:
+    - name: Ensure lv_name is provided
+      ansible.builtin.assert:
+        that:
+          - lv_name is defined
+          - lv_name | length > 0
+        fail_msg: "You must provide lv_name (example: -e lv_name=data)."
+
+    - name: Create logical volume
+      community.general.lvol:
+        vg: "{{ vg_name | default('nvme_vg') }}"
+        lv: "{{ lv_name }}"
+        size: "{{ lv_size }}"
+        state: present
+
+    - name: Create btrfs filesystem on LV
+      community.general.filesystem:
+        fstype: btrfs
+        dev: "/dev/{{ vg_name | default('nvme_vg') }}/{{ lv_name }}"
+
+    - name: Get filesystem UUID
+      ansible.builtin.command:
+        cmd: "blkid -s UUID -o value /dev/{{ vg_name | default('nvme_vg') }}/{{ lv_name }}"
+      register: lv_uuid
+      changed_when: false
+
+    - name: Ensure mount point exists
+      ansible.builtin.file:
+        path: "{{ mount_point }}"
+        state: directory
+        mode: "0755"
+
+    - name: Mount top-level btrfs volume on /mnt (subvolid=5)
+      ansible.posix.mount:
+        path: "{{ mount_point }}"
+        src: "UUID={{ lv_uuid.stdout }}"
+        fstype: btrfs
+        opts: "subvolid=5"
+        state: mounted
+
+    - name: Create btrfs subvolumes
+      ansible.builtin.command:
+        cmd: "btrfs subvolume create {{ mount_point }}/{{ item }}"
+        creates: "{{ mount_point }}/{{ item }}"
+      loop: "{{ subvolumes }}"
+
+    - name: Ensure subvolume mount points exist
+      ansible.builtin.file:
+        path: "{{ mount_point }}/{{ item }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ subvolumes }}"
+
+    - name: Mount btrfs subvolumes by UUID and persist in fstab
+      ansible.posix.mount:
+        path: "{{ mount_point }}/{{ item }}"
+        src: "UUID={{ lv_uuid.stdout }}"
+        fstype: btrfs
+        opts: "subvol={{ item }}"
+        state: mounted
+      loop: "{{ subvolumes }}"
+
+    - name: Read target user entry from passwd database
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ xen_cfg_user }}"
+
+    - name: Set target user home directory
+      ansible.builtin.set_fact:
+        xen_cfg_home: "{{ ansible_facts.getent_passwd[xen_cfg_user][4] }}"
+
+    - name: Use provided Xen MAC address
+      ansible.builtin.set_fact:
+        xen_mac_effective: "{{ xen_mac }}"
+      when: xen_mac | trim | length > 0
+
+    - name: Generate random locally-administered Xen MAC address
+      ansible.builtin.set_fact:
+        xen_mac_effective: >-
+          02:{{ '%02x' | format(256 | random) }}:{{ '%02x' | format(256 | random) }}:{{ '%02x' | format(256 | random) }}:{{ '%02x' | format(256 | random) }}:{{ '%02x' | format(256 | random) }}
+      when: xen_mac | trim | length == 0
+
+    - name: Show Xen MAC address used for vif
+      ansible.builtin.debug:
+        msg: "Using Xen MAC: {{ xen_mac_effective }}"
+
+    - name: Write Xen xl config in user home directory
+      ansible.builtin.copy:
+        dest: "{{ xen_cfg_home }}/{{ lv_name }}"
+        owner: "{{ xen_cfg_user }}"
+        group: "{{ xen_cfg_user }}"
+        mode: "0644"
+        content: |
+          name = "{{ lv_name }}"
+          type = "{{ xen_type }}"
+          memory = {{ xen_memory_mb }}
+          vcpus = {{ xen_vcpus }}
+          vif = [ "bridge={{ xen_bridge }},mac={{ xen_mac_effective }}" ]
+          on_poweroff = "{{ xen_on_poweroff }}"
+          on_reboot = "{{ xen_on_reboot }}"
+          on_crash = "{{ xen_on_crash }}"
+          disk = [ "phy:/dev/{{ vg_name | default('nvme_vg') }}/{{ lv_name }},xvda,rw" ]
+
+    - name: Show xl command to start the DomU
+      ansible.builtin.debug:
+        msg: "Run: xl create {{ xen_cfg_home }}/{{ lv_name }}"
