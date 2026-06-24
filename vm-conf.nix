@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+{ ... }:
 {
   imports = [
     ./modules
@@ -6,7 +6,11 @@
   # Common configuration for Xen DomU NixOS virtual machines.
   boot = {
     growPartition = true;
-    kernelParams = ["console=ttyS0" "vga=0x317" "nomodeset"];
+    kernelParams = [
+      "console=ttyS0"
+      "vga=0x317"
+      "nomodeset"
+    ];
     loader.grub.enable = true;
     initrd.systemd.enable = true;
   };
@@ -22,7 +26,7 @@
     "xen-pcifront"
     "xen-scsifront"
   ];
-  
+
   # Send syslog messages to the Xen console.
   services.syslogd.tty = "hvc0";
 
@@ -30,4 +34,3 @@
   services.timesyncd.enable = false;
 
 }
-
