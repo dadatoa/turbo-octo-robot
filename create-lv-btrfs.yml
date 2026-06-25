@@ -11,39 +11,39 @@
       - boot
       - nix
       - persist
-    xen_cfg_user: "{{ ansible_user | default('root') }}"
+    xen_cfg_user: "{{ ansible_user | default('operateur') }}"
     xen_memory_mb: 4096
     xen_vcpus: 4
     xen_type: "pvh"
     xen_bridge: "xenbr0"
     xen_mac: ""
     xen_on_poweroff: "destroy"
-    xen_on_reboot: "restart"
-    xen_on_crash: "restart"
+    flake_ref: "github:dadatoa/turbo-octo-robot"
+    flake_target: "nixdomu"
 
   tasks:
-    - name: Ensure lv_name is provided
+    - name: Ensure hostname is provided
       ansible.builtin.assert:
         that:
-          - lv_name is defined
-          - lv_name | length > 0
-        fail_msg: "You must provide lv_name (example: -e lv_name=data)."
+          - hostname is defined
+          - hostname | length > 0
+        fail_msg: "You must provide hostname (example: -e hostname=nas)."
 
     - name: Create logical volume
       community.general.lvol:
         vg: "{{ vg_name | default('nvme_vg') }}"
-        lv: "{{ lv_name }}"
+        lv: "{{ hostname }}"
         size: "{{ lv_size }}"
         state: present
 
     - name: Create btrfs filesystem on LV
       community.general.filesystem:
         fstype: btrfs
-        dev: "/dev/{{ vg_name | default('nvme_vg') }}/{{ lv_name }}"
+        dev: "/dev/{{ vg_name | default('nvme_vg') }}/{{ hostname }}"
 
     - name: Get filesystem UUID
       ansible.builtin.command:
-        cmd: "blkid -s UUID -o value /dev/{{ vg_name | default('nvme_vg') }}/{{ lv_name }}"
+        cmd: "blkid -s UUID -o value /dev/{{ vg_name | default('nvme_vg') }}/{{ hostname }}"
       register: lv_uuid
       changed_when: false
 
@@ -74,7 +74,7 @@
         mode: "0755"
       loop: "{{ subvolumes }}"
 
-    - name: Read target user entry from passwd database
+    - name: Read target user entry from passwd nasbase
       ansible.builtin.getent:
         database: passwd
         key: "{{ xen_cfg_user }}"
@@ -100,21 +100,23 @@
 
     - name: Write Xen xl config in user home directory
       ansible.builtin.copy:
-        dest: "{{ xen_cfg_home }}/{{ lv_name }}"
+        dest: "/home/{{ xen_cfg_user }}/{{ hostname }}.cfg"
         owner: "{{ xen_cfg_user }}"
-        group: "{{ xen_cfg_user }}"
         mode: "0644"
         content: |
-          name = "{{ lv_name }}"
+          name = "{{ hostname }}"
           type = "{{ xen_type }}"
           memory = {{ xen_memory_mb }}
           vcpus = {{ xen_vcpus }}
           vif = [ "bridge={{ xen_bridge }},mac={{ xen_mac_effective }}" ]
           on_poweroff = "{{ xen_on_poweroff }}"
-          on_reboot = "{{ xen_on_reboot }}"
-          on_crash = "{{ xen_on_crash }}"
-          disk = [ "phy:/dev/{{ vg_name | default('nvme_vg') }}/{{ lv_name }},xvda,rw" ]
+          disk = [ "/dev/{{ vg_name | default('nvme_vg') }}/{{ hostname }},,xvda" ]
+          kernel="/run/current-system/sw/lib/grub-xen_pvh/grub-i386-xen_pvh.bin"
+
+    - name: Show installation command to bootstrap the DomU
+      ansible.builtin.debug:
+        msg: "Run: sudo nixos-install --root /mnt --no-root-password --flake {{ flake_ref }}#{{ flake_target }}"
 
     - name: Show xl command to start the DomU
       ansible.builtin.debug:
-        msg: "Run: xl create {{ xen_cfg_home }}/{{ lv_name }}"
+        msg: "Run: xl create {{ xen_cfg_home }}/{{ hostname }}"
