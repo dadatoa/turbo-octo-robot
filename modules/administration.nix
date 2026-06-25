@@ -1,4 +1,10 @@
-{ config, lib, pkgs, inputs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 {
   boot.supportedFilesystems.btrfs = true;
 
@@ -20,6 +26,7 @@
     usbutils
     vim
     wget
+    python3
   ];
 
-} 
+}
