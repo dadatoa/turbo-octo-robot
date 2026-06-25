@@ -59,7 +59,7 @@
         src: "UUID={{ lv_uuid.stdout }}"
         fstype: btrfs
         opts: "subvolid=5"
-        state: mounted
+        state: ephemeral
 
     - name: Create btrfs subvolumes
       ansible.builtin.command:
@@ -72,15 +72,6 @@
         path: "{{ mount_point }}/{{ item }}"
         state: directory
         mode: "0755"
-      loop: "{{ subvolumes }}"
-
-    - name: Mount btrfs subvolumes by UUID and persist in fstab
-      ansible.posix.mount:
-        path: "{{ mount_point }}/{{ item }}"
-        src: "UUID={{ lv_uuid.stdout }}"
-        fstype: btrfs
-        opts: "subvol={{ item }}"
-        state: mounted
       loop: "{{ subvolumes }}"
 
     - name: Read target user entry from passwd database
