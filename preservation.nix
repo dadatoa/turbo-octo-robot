@@ -8,14 +8,26 @@
         # "/var/lib/bluetooth"
         "/var/lib/tailscale"
         "/var/lib/glusterd"
-        { directory = "/var/lib/nixos"; inInitrd = true; }
+        {
+          directory = "/var/lib/nixos";
+          inInitrd = true;
+        }
       ];
 
       files = [
         "/etc/ssh/authorized_keys.d/operateur"
-        { file = "/persistent/secrets/root-password.txt"; inInitrd = true; }
-        { file = "/persistent/secrets/ts-key.txt"; inInitrd = true; }
-        { file = "/etc/machine-id"; inInitrd = true; }
+        {
+          file = "/persist/secrets/root-password.txt";
+          inInitrd = true;
+        }
+        {
+          file = "/persist/secrets/ts-key.txt";
+          inInitrd = true;
+        }
+        {
+          file = "/etc/machine-id";
+          inInitrd = true;
+        }
       ];
 
       # Preserve user files
@@ -31,4 +43,3 @@
     };
   };
 }
-
