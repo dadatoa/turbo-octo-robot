@@ -103,9 +103,15 @@
       ansible.builtin.debug:
         msg: "Using Xen MAC: {{ xen_mac_effective }}"
 
+    - name: Remove xl config file if it exists
+      ansible.builtin.file:
+        path: "/home/{{ xen_cfg_user }}/xl-configs/{{ hostname }}.cfg"
+
+        state: absent
+
     - name: Write Xen xl config in user home directory
       ansible.builtin.copy:
-        dest: "/home/{{ xen_cfg_user }}/{{ hostname }}.cfg"
+        dest: "/home/{{ xen_cfg_user }}/xl-configs{{ hostname }}.cfg"
         owner: "{{ xen_cfg_user }}"
         mode: "0644"
         content: |
