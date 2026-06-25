@@ -1,6 +1,6 @@
 ---
 - name: Post-install secrets provisioning
-  hosts: all
+  hosts: nixos-vm
   become: true
   gather_facts: false
 

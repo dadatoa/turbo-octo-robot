@@ -1,6 +1,6 @@
 ---
 - name: Install NixOS from GitHub flake onto prepared /mnt target
-  hosts: all
+  hosts: xen
   become: true
   gather_facts: false
   vars_files:
@@ -42,7 +42,7 @@
       ansible.builtin.file:
         path: "{{ mount_root }}/persist/home/{{ user }}/.ssh"
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: copy ssh keys
       ansible.builtin.copy:
@@ -56,7 +56,7 @@
       ansible.builtin.file:
         path: "{{ mount_root }}/persist/secrets"
         state: directory
-        mode: '0755'
+        mode: "0755"
 
     - name: copy hashed root pasword on secrets
       ansible.builtin.copy:
@@ -67,7 +67,7 @@
       ansible.builtin.copy:
         dest: "{{ mount_root }}/persist/secrets/ts-key.txt"
         content: "{{ tskey }}"
-    
+
     - name: Install NixOS from GitHub flake
       ansible.builtin.command:
         cmd: >-

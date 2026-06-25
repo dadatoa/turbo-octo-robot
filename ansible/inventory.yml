@@ -1,0 +1,11 @@
+hypervisors:
+  hosts:
+    xen:
+      ansible_host: 10.10.10.175
+      ansible_user: operateur
+
+vms:
+  hosts:
+    nixos-vm:
+      ansible_host: nixos-vm.local
+      ansible_user: operateur

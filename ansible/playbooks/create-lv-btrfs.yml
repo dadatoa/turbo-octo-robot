@@ -1,6 +1,6 @@
 ---
 - name: Create LVM LV, format as btrfs, create subvolumes, and mount by UUID
-  hosts: all
+  hosts: xen
   become: true
   gather_facts: false
 
@@ -57,7 +57,7 @@
       ansible.posix.mount:
         path: "{{ mount_point }}"
         state: unmounted
-    
+
     - name: Mount top-level btrfs volume on /mnt (subvolid=5)
       ansible.posix.mount:
         path: "{{ mount_point }}"

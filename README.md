@@ -39,20 +39,30 @@ cp ansible/secrets.yml.example ansible/secrets.yml
 ansible-vault encrypt ansible/secrets.yml
 ```
 
+## Inventory
+
+The inventory is located at `ansible/inventory.ini`.
+
+| Group | Host | Description |
+|---|---|---|
+| `xen` | `10.10.10.175` | Dom0 — target for provisioning and NixOS install |
+| `vms` | `nixos-vm.local` | DomU — target for post-install secrets |
+
 ## Usage
 
 ### 1. Provision LV, Btrfs and Xen config
 
-Minimum required variable is `hostname`. `vg_name` is optional and defaults to `nvme_vg`.
+Runs on the `xen` group (Dom0). Minimum required variable is `lv_name`.
+`vg_name` is optional and defaults to `nvme_vg`.
 
 ```bash
-ansible-playbook ansible/create-lv-btrfs.yml -i inventory.ini -e hostname=nas
+ansible-playbook ansible/create-lv-btrfs.yml -i ansible/inventory.ini -l xen -e lv_name=data
 ```
 
 Override volume group, LV size and Xen defaults:
 
 ```bash
-ansible-playbook ansible/create-lv-btrfs.yml -i inventory.ini \
+ansible-playbook ansible/create-lv-btrfs.yml -i ansible/inventory.ini -l xen \
   -e lv_name=data \
   -e vg_name=my_vg \
   -e lv_size=20g \
@@ -62,25 +72,26 @@ ansible-playbook ansible/create-lv-btrfs.yml -i inventory.ini \
 
 ### 2. Install NixOS from GitHub flake
 
-Run after the LV is provisioned and `/mnt` is mounted.
+Runs on the `xen` group (Dom0), after the LV is provisioned and `/mnt` is mounted.
 Installs `nixdomu` from `github:dadatoa/turbo-octo-robot` by default.
 
 ```bash
-ansible-playbook ansible/install-nixos-from-github-flake.yml -i inventory.ini
+ansible-playbook ansible/install-nixos-from-github-flake.yml -i ansible/inventory.ini -l xen
 ```
 
 Override flake reference or host config:
 
 ```bash
-ansible-playbook ansible/install-nixos-from-github-flake.yml -i inventory.ini \
+ansible-playbook ansible/install-nixos-from-github-flake.yml -i ansible/inventory.ini -l xen \
   -e flake_ref=github:dadatoa/turbo-octo-robot \
   -e flake_host=nixdomu
 ```
 
 ### 3. Post-install secrets provisioning
 
-Run after NixOS is installed. Requires the encrypted `ansible/secrets.yml`.
+Runs on the `vms` group (DomU), after NixOS is installed and booted.
+Requires the encrypted `ansible/secrets.yml`.
 
 ```bash
-ansible-playbook ansible/post-install.yml -i inventory.ini --ask-vault-pass
+ansible-playbook ansible/post-install.yml -i ansible/inventory.ini -l vms --ask-vault-pass
 ```
