@@ -1,0 +1,2 @@
+# Ansible secrets — copy secrets.yml.example to secrets.yml and fill in values
+ansible/secrets.yml

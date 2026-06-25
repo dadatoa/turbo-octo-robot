@@ -1,0 +1,33 @@
+---
+- name: Post-install secrets provisioning
+  hosts: all
+  become: true
+  gather_facts: false
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Ensure /persist/secrets directory exists
+      ansible.builtin.file:
+        path: /persist/secrets
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Write Tailscale auth key to /persist/secrets/ts-key.txt
+      ansible.builtin.copy:
+        content: "{{ tskey }}"
+        dest: /persist/secrets/ts-key.txt
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Write root password to /persist/secrets/root-password.txt
+      ansible.builtin.copy:
+        content: "{{ rootpassword }}"
+        dest: /persist/secrets/root-password.txt
+        owner: root
+        group: root
+        mode: "0600"
