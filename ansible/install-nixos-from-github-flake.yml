@@ -1,0 +1,79 @@
+---
+- name: Install NixOS from GitHub flake onto prepared /mnt target
+  hosts: all
+  become: true
+  gather_facts: false
+  vars_files:
+    - secrets.yml
+  vars:
+    mount_root: "/mnt"
+    flake_ref: "github:dadatoa/turbo-octo-robot"
+    flake_host: "nixdomu"
+    nixos_install_no_root_password: true
+    user: "operateur"
+
+  tasks:
+    - name: Ensure /mnt exists
+      ansible.builtin.file:
+        path: "{{ mount_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Ensure /mnt is a mounted filesystem
+      ansible.builtin.command:
+        argv:
+          - findmnt
+          - -M
+          - "{{ mount_root }}"
+      register: mount_check
+      changed_when: false
+
+    - name: Ensure expected mount points exist
+      ansible.builtin.file:
+        path: "{{ mount_root }}/{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - boot
+        - nix
+        - persist
+
+    - name: ssh directory for user on persit
+      ansible.builtin.file:
+        path: "{{ mount_root }}/persist/home/{{ user }}/.ssh"
+        state: directory
+        mode: '0755'
+
+    - name: copy ssh keys
+      ansible.builtin.copy:
+        dest: "{{ mount_root }}/persist/home/{{ user }}/.ssh/authorized_keys"
+        content: |
+          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF36sv0vHnOUCx8uMWCkwLwpQoBgWP0NzYRhd6+6vr8t deploy_app_to_server_github_actions
+          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBA52LLKZPhszwrzrqOwLJ2a2spNzjAn/ls6krE9SM/i dadatoa@dadabook
+          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBYmuoLsuaNYq09vKThWHONy5ZkHeBXseTYpfdOhj07n deploy_from_deckard
+
+    - name: create dir for secrets on persist
+      ansible.builtin.file:
+        path: "{{ mount_root }}/persist/secrets"
+        state: directory
+        mode: '0755'
+
+    - name: copy hashed root pasword on secrets
+      ansible.builtin.file:
+        path: "{{ mount_root }}/persist/secrets/root-password.txt"
+        content: "{{ root-password }}"
+
+    - name: tailscale key on secrets
+      ansible.builtin.file:
+        path: "{{ mount_root }}/persist/secrets/ts-key.txt"
+        content: "{{ ts-key }}"
+    
+    - name: Install NixOS from GitHub flake
+      ansible.builtin.command:
+        cmd: >-
+          nixos-install
+          --root {{ mount_root }}
+          --flake {{ flake_ref }}#{{ flake_host }}
+          {{ '--no-root-passwd' if nixos_install_no_root_password else '' }}
+      environment:
+        NIX_CONFIG: "experimental-features = nix-command flakes"

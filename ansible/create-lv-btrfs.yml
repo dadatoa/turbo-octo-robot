@@ -53,6 +53,11 @@
         state: directory
         mode: "0755"
 
+    - name: Ensure nothing is already mounted on mount point
+      ansible.posix.mount:
+        path: "{{ mount_point }}"
+        state: unmounted
+    
     - name: Mount top-level btrfs volume on /mnt (subvolid=5)
       ansible.posix.mount:
         path: "{{ mount_point }}"
