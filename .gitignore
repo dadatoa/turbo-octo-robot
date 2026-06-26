@@ -1,2 +1,10 @@
 # Ansible secrets — copy secrets.yml.example to secrets.yml and fill in values
 ansible/secrets.yml
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+ts-key.yaml

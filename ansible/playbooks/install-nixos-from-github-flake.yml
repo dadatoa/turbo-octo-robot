@@ -58,16 +58,6 @@
         state: directory
         mode: "0755"
 
-    - name: copy hashed root pasword on secrets
-      ansible.builtin.copy:
-        dest: "{{ mount_root }}/persist/secrets/root-password.txt"
-        content: "{{ rootpassword }}"
-
-    - name: tailscale key on secrets
-      ansible.builtin.copy:
-        dest: "{{ mount_root }}/persist/secrets/ts-key.txt"
-        content: "{{ tskey }}"
-
     - name: Install NixOS from GitHub flake
       ansible.builtin.command:
         cmd: >-

@@ -5,7 +5,7 @@
   gather_facts: false
 
   vars_files:
-    - secrets.yml
+    - ./secrets.yml
 
   tasks:
     - name: Ensure /persist/secrets directory exists
