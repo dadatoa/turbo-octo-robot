@@ -72,7 +72,7 @@
         type = "lvm_vg";
         lvs = {
           dom0 = {
-            size = "20G";
+            size = "40G";
             content = {
               type = "btrfs";
               extraArgs = [ "-f" ];
