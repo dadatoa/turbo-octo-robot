@@ -22,11 +22,6 @@
           inInitrd = true;
         }
       ];
-      users.operateur = {
-        directories = [
-          "xl-configs"
-        ];
-      };
     };
   };
 }
