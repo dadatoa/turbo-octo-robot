@@ -3,14 +3,19 @@
   hosts: xen
   become: true
   gather_facts: false
-  vars_files:
-    - secrets.yml
+  # vars_files:
+  #   - secrets.yml
   vars:
     mount_root: "/mnt"
     flake_ref: "github:dadatoa/turbo-octo-robot"
     flake_host: "nixdomu"
     nixos_install_no_root_password: true
     user: "operateur"
+    vg_name: "nvme_vg"
+    subvolumes:
+      - boot
+      - nix
+      - persist
 
   tasks:
     - name: Ensure /mnt exists
@@ -19,44 +24,21 @@
         state: directory
         mode: "0755"
 
-    - name: Ensure /mnt is a mounted filesystem
-      ansible.builtin.command:
-        argv:
-          - findmnt
-          - -M
-          - "{{ mount_root }}"
-      register: mount_check
-      changed_when: false
-
     - name: Ensure expected mount points exist
       ansible.builtin.file:
         path: "{{ mount_root }}/{{ item }}"
         state: directory
         mode: "0755"
-      loop:
-        - boot
-        - nix
-        - persist
+      loop: "{{ subvolumes }}"
 
-    - name: ssh directory for user on persit
-      ansible.builtin.file:
-        path: "{{ mount_root }}/persist/home/{{ user }}/.ssh"
-        state: directory
-        mode: "0755"
-
-    - name: copy ssh keys
-      ansible.builtin.copy:
-        dest: "{{ mount_root }}/persist/home/{{ user }}/.ssh/authorized_keys"
-        content: |
-          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF36sv0vHnOUCx8uMWCkwLwpQoBgWP0NzYRhd6+6vr8t deploy_app_to_server_github_actions
-          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBA52LLKZPhszwrzrqOwLJ2a2spNzjAn/ls6krE9SM/i dadatoa@dadabook
-          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBYmuoLsuaNYq09vKThWHONy5ZkHeBXseTYpfdOhj07n deploy_from_deckard
-
-    - name: create dir for secrets on persist
-      ansible.builtin.file:
-        path: "{{ mount_root }}/persist/secrets"
-        state: directory
-        mode: "0755"
+    - name: Mount btrfs subvolumes
+      ansible.posix.mount:
+        path: "{{ mount_root }}/{{ item }}"
+        src: "/dev/{{ vg_name }}/{{ hostname }}"
+        fstype: btrfs
+        opts: "subvol={{ item }},compress=zstd,noatime"
+        state: ephemeral
+      loop: "{{ subvolumes }}"
 
     - name: Install NixOS from GitHub flake
       ansible.builtin.command:
@@ -67,3 +49,12 @@
           {{ '--no-root-passwd' if nixos_install_no_root_password else '' }}
       environment:
         NIX_CONFIG: "experimental-features = nix-command flakes"
+
+    - name: Unount btrfs subvolumes
+      ansible.posix.mount:
+        path: "{{ mount_root }}/{{ item }}"
+        src: "/dev/{{ vg_name }}/{{ hostname }}"
+        fstype: btrfs
+        opts: "subvol={{ item }},compress=zstd,noatime"
+        state: unmounted
+      loop: "{{ subvolumes }}"
