@@ -1,33 +1,31 @@
 ---
-- name: Post-install secrets provisioning
+- name: Post-install provisioning for operateur user
   hosts: nixos-vm
   become: true
   gather_facts: false
 
   vars_files:
-    - ./secrets.yml
+    - secrets.yml
+  vars:
+    target_user: "operateur"
 
   tasks:
-    - name: Ensure /persist/secrets directory exists
+    - name: Ensure operateur home .ssh directory exists
       ansible.builtin.file:
-        path: /persist/secrets
+        path: "/home/{{ target_user }}/.ssh"
         state: directory
-        owner: root
-        group: root
+        owner: "{{ target_user }}"
         mode: "0700"
 
-    - name: Write Tailscale auth key to /persist/secrets/ts-key.txt
-      ansible.builtin.copy:
-        content: "{{ tskey }}"
-        dest: /persist/secrets/ts-key.txt
-        owner: root
-        group: root
-        mode: "0600"
+    - name: Authorize SSH keys for operateur
+      ansible.posix.authorized_key:
+        user: "{{ target_user }}"
+        state: present
+        key: "{{ item }}"
+      loop: "{{ ssh_public_keys }}"
 
-    - name: Write root password to /persist/secrets/root-password.txt
-      ansible.builtin.copy:
-        content: "{{ rootpassword }}"
-        dest: /persist/secrets/root-password.txt
-        owner: root
-        group: root
-        mode: "0600"
+    - name: Bring Tailscale up with auth key
+      ansible.builtin.command:
+        cmd: "tailscale up --authkey {{ tskey }}?ephemeral=false&preauthorized=true' --advertise-tags=tag:testlab,tag=home"
+      no_log: true
+      become: true
