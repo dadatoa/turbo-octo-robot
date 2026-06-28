@@ -7,7 +7,6 @@
     ./users
     ./administration.nix
     ./localisation.nix
-    ./network.nix
     ./remote_access.nix
     ./settings.nix
     ./usefull_tools.nix
