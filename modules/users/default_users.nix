@@ -1,6 +1,7 @@
 { config, pkgs, ... }:
 {
   users.users.operateur = {
+    initialPassword = "*perateur"; ## dont lock myself out at first boot
     isNormalUser = true;
     uid = 1000;
     description = "main user";
@@ -17,8 +18,7 @@
     ];
   };
   users.users.root = {
-    hashedPasswordFile = "/persist/secrets/root-password.txt"; 
-    # initialHashedPassword = lib.strings.fileContents /run/secrets/root-password.txt;
+    initialPassword = "*perateur"; ## dont lock myself out at first boot
   };
   security.sudo.wheelNeedsPassword = false;
 }
