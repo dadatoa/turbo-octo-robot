@@ -84,7 +84,7 @@
                   ];
                   mountpoint = "/nix";
                 };
-                "/persistent" = {
+                "/persist" = {
                   mountOptions = [
                     "subvol=persist"
                     "noatime"
