@@ -29,6 +29,7 @@
           ./xen-config/configuration.nix
           ./xen-config/disko.nix
           ./xen-config/preservation.nix
+          ./xen-config/bootstrap.nix
         ];
       };
     };
