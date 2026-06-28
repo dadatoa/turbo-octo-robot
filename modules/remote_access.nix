@@ -11,12 +11,6 @@
   # enable Tailscale with config
   services.tailscale = {
     enable = true;
-    authKeyFile = "/persist/secrets/ts-key.txt";
-    authKeyParameters.ephemeral = false;
-    extraUpFlags = [
-      "--advertise-tags=tag:testlab,tag:home"
-      "--ssh"
-    ];
   };
   
   ## enable mdns autodiscovery
