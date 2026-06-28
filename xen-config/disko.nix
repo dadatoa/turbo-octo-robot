@@ -86,10 +86,10 @@
                 };
                 "/persistent" = {
                   mountOptions = [
-                    "subvol=persistent"
+                    "subvol=persist"
                     "noatime"
                   ];
-                  mountpoint = "/persistent";
+                  mountpoint = "/persist";
                 };
               };
             };
