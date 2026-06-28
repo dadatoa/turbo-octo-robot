@@ -12,7 +12,6 @@
           directory = "/var/lib/nixos";
           inInitrd = true;
         }
-
       ];
 
       files = [
@@ -22,6 +21,12 @@
           inInitrd = true;
         }
       ];
+      users.operateur = {
+        files = [
+          ".gitconfig"
+          ".ssh/authorized_keys"
+        ];
+      };
     };
   };
 }

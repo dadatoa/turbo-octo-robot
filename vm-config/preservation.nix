@@ -32,8 +32,10 @@
 
       # Preserve user files
       users.operateur = {
-        directories = [ ".ssh" ];
-        files = [ ".gitconfig" ];
+        files = [
+          ".gitconfig"
+          ".ssh/authorized_keys"
+        ];
       };
       users.root = {
         home = "/root";
