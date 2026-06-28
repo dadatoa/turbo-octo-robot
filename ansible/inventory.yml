@@ -1,7 +1,7 @@
 hypervisors:
   hosts:
     xen:
-      ansible_host: 10.10.10.175
+      ansible_host: 100.107.28.98
       ansible_user: operateur
 
 vms:
